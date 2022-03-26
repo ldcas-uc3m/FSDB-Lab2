@@ -3,6 +3,8 @@
 -- hospitals). Outputs: company name, company tax id, product name, version, (number
 -- of) coverages, (number of) doctors. 
 
+-- TODO: not working properly - sumar doctores de diferentes hospitales
+
 WITH 
   Num_coverages AS (
     -- Number of coverages(specialties) of each active product
@@ -18,7 +20,7 @@ WITH
   ),
   Num_doctors AS (
     -- Number of doctors per specialty, per hospital
-    SELECT count('x') AS num_doc, hospital as hosp_name, specialty
+    SELECT count('x') AS num_doc, hospital, specialty
     FROM Adscriptions
     GROUP BY specialty, hospital
   ),
@@ -41,24 +43,29 @@ WITH
       specialty,
       prod_name,
       cif,
+      comp_name,
       version
     FROM Services 
       JOIN (
-        SELECT cif, specialty, name as prod_name, version
+        SELECT cif, specialty, prod_name, comp_name, version
         FROM Products_wComp
-          JOIN Coverages USING (cif, name, version)
+          JOIN (
+            SELECT cif, specialty, name as prod_name, version
+            FROM Coverages
+          ) USING (cif, prod_name, version)
       )
       USING (specialty)
   ),
   Prod_numDoc AS (
     -- Number of doctors for each product
     SELECT
+      comp_name,
       prod_name,
       cif,
       version,
       num_doc
     FROM Hosp_products
-      JOIN Num_doctors USING (prod_name, cif, version)
+      JOIN Num_doctors USING (hospital, specialty)
   )
 SELECT
   comp_name,
@@ -115,16 +122,59 @@ SELECT company_name, name, version, cif, listagg(comp_specialties.specialty, ';'
 
 
 
---- QUERY 3
-WITH product_max AS (
-SELECT * FROM QMAX JOIN
-)
+-- QUERY 3
+-- For each specialty, minimum and maximum waiting periods, and brief desc of the
+-- product (including the name of the company that offers it, the name of the product and
+-- its version). If there are several “tied” companies, the product with the earlier release
+-- date will be chosen (if still tied, any of the products is chosen). Outputs: specialty, type
+-- of row (either ‘minimum’ or ‘maximum’ period), period in days, company name,
+-- company tax id, product name, and version. Sort the output alphabetically by specialty.
 
-WITH QMAX AS (
-SELECT UPPER(waiting_period), cif, name, version  from coverages order by waiting_period ASC;
-)
+WITH 
+  Spec_max AS (
+    SELECT cif, specialty, name as prod_name, version, upper(waiting_period) AS max_waiting_period 
+    FROM Coverages
+    ORDER BY waiting_period ASC
+  ),
+  Spec_min AS (
+    SELECT cif, specialty, name as prod_name, version, upper(waiting_period) AS min_waiting_period 
+    FROM Coverages
+    ORDER BY waiting_period DESC
+  ),
+  QMax AS (
+    SELECT cif, to_char('max') as type, specialty, max_waiting_period as days, name as comp_name, prod_name, version
+    FROM Companies 
+      JOIN (
+        SELECT cif, prod_name, version, max_waiting_period, specialty
+        FROM (
+          SELECT cif, name as prod_name, version
+          FROM Products
+        )
+        JOIN Spec_max
+          USING (cif, prod_name, version)
+      )
+      USING (cif)
+  ),
+  QMin AS (
+    SELECT cif, to_char('min') as type, specialty, min_waiting_period as days, name as comp_name, prod_name, version
+    FROM Companies
+      JOIN (
+        SELECT cif, prod_name, version, min_waiting_period, specialty
+        FROM (
+          SELECT cif, name as prod_name, version
+          FROM Products
+        )
+        JOIN Spec_min
+          USING (cif, prod_name, version)
+      )
+      USING (cif)
+  )
+SELECT cif, comp_name, specialty, prod_name, version, type, days FROM QMax 
+UNION  
+SELECT cif, comp_name, specialty, prod_name, version, type, days FROM QMin
+ORDER BY cif, specialty
+;
 
-WITH QMIN AS (
-SELECT UPPER(waiting_period), cif, name, version,  from coverage order by waiting_period DESC;
-)
+-- TEST QUERY 3
 
+  
