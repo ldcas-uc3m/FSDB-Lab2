@@ -3,20 +3,73 @@
 -- hospitals). Outputs: company name, company tax id, product name, version, (number
 -- of) coverages, (number of) doctors. 
 
-WITH Num_coverages AS (
-  SELECT count('x') as num_cov, Coverages.CIF, Products.name AS prod_name, Products.version
-  FROM Coverages INNER JOIN Products
-    ON Coverages.CIF = Products.CIF
-    AND Coverages.name = Products.name
-    AND Coverages.version = Products.version
-  WHERE retired is NULL and launch is not NULL
-  GROUP BY Coverages.CIF, Products.name, Products.version
-),
-Num_doctors AS (
-  SELECT count('x') AS num_doc, hospital as hosp_name, specialty
-  FROM Adscriptions
-  GROUP BY specialty, hospital
-),
+WITH 
+  Num_coverages AS (
+    -- Number of coverages(specialties) of each active product
+    SELECT 
+      count('x') AS num_cov,
+      cif,
+      name AS prod_name,
+      version
+    FROM Coverages
+      JOIN Products USING (cif, name, version)
+    WHERE retired is NULL and launch is not NULL
+    GROUP BY cif, name, version
+  ),
+  Num_doctors AS (
+    -- Number of doctors per specialty, per hospital
+    SELECT count('x') AS num_doc, hospital as hosp_name, specialty
+    FROM Adscriptions
+    GROUP BY specialty, hospital
+  ),
+  Products_wComp AS (
+    -- Products with the company names
+    SELECT cif, name as prod_name, version, comp_name
+    FROM 
+      (SELECT cif, name as comp_name FROM Companies)
+      JOIN (
+        SELECT cif, name, version
+        FROM Products
+        WHERE retired is NULL and launch is not NULL
+      )
+      USING (cif)
+  ),
+  Hosp_products AS (
+    -- Specialties of each product, for each hospital
+    SELECT
+      hospital,
+      specialty,
+      prod_name,
+      cif,
+      version
+    FROM Services 
+      JOIN (
+        SELECT cif, specialty, name as prod_name, version
+        FROM Products_wComp
+          JOIN Coverages USING (cif, name, version)
+      )
+      USING (specialty)
+  ),
+  Prod_numDoc AS (
+    -- Number of doctors for each product
+    SELECT
+      prod_name,
+      cif,
+      version,
+      num_doc
+    FROM Hosp_products
+      JOIN Num_doctors USING (prod_name, cif, version)
+  )
+SELECT
+  comp_name,
+  cif,
+  prod_name,
+  version,
+  num_cov,
+  num_doc
+FROM Num_coverages
+  JOIN Prod_numDoc USING (prod_name, cif, version)
+;
   
 
 
