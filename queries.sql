@@ -87,36 +87,35 @@ FROM Num_coverages
 
 -- [NOT WORKING]
 
-WITH prod_specialties AS (
-  SELECT
-    Companies.name AS company_name,
-    Products.name,
-    Coverages.version,
-    Companies.cif,
-    specialty
-  FROM
-    Products INNER JOIN Coverages 
-      ON Products.cif = Coverages.cif
-      AND Products.name = Coverages.name
-      AND Products.version = Coverages.version
-    INNER JOIN Companies ON Products.cif = Companies.cif
-  WHERE retired IS NULL
-  ),
-  comp_specialties AS (
-    SELECT
-      specialty,
-      company
-    FROM
-      Hospitals INNER JOIN Services
-        ON services.hospital = hospitals.name
-      INNER JOIN contracts
-        ON contracts.hospital = hospitals.name
-  )
-SELECT company_name, name, version, cif, listagg(comp_specialties.specialty, ';') within group (ORDER BY comp_specialties.specialty) AS specialties
-  FROM prod_specialties
-    INNER JOIN comp_specialties ON comp_specialties.specialty != prod_specialties.specialty AND comp_specialties.company = prod_specialties.cif
-  GROUP BY company_name, cif, name, version
+with 
+
+sq1 as (
+SELECT DISTINCT
+    fsdb254.contracts.company,
+    fsdb254.services.specialty
+FROM
+    fsdb254.services
+    JOIN fsdb254.contracts using (hospital)
+)
 ;
+
+sq2 as (
+SELECT
+    fsdb254.coverages.cif,
+    fsdb254.coverages.name,
+    fsdb254.coverages.version,
+    fsdb254.coverages.specialty,
+    fsdb254.companies.name AS name_company
+FROM
+    fsdb254.coverages
+    JOIN fsdb254.companies using  (cif);
+
+)
+
+select cif, name_company, name, version, sq2.specialty
+from sq2
+inner join sq1 on  sq1. company = sq2.cif
+where sq2.cif not in sq1.company
 
 
 
