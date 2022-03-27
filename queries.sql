@@ -3,8 +3,6 @@
 -- hospitals). Outputs: company name, company tax id, product name, version, (number
 -- of) coverages, (number of) doctors. 
 
--- TODO: not working properly - sumar doctores de diferentes hospitales
-
 WITH 
   Num_coverages AS (
     -- Number of coverages(specialties) of each active product
@@ -63,9 +61,10 @@ WITH
       prod_name,
       cif,
       version,
-      num_doc
+      sum(num_doc) as num_doc
     FROM Hosp_products
       JOIN Num_doctors USING (hospital, specialty)
+    GROUP BY prod_name, version, comp_name, cif
   )
 SELECT
   comp_name,
