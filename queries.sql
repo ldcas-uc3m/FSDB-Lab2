@@ -1,3 +1,7 @@
+-- ---
+-- Q1
+-- ---
+
 -- For each product currently offered (in use), report about how many doctors could be
 -- appointed with that product (counting all the specialties covered and all the affiliated
 -- hospitals). Outputs: company name, company tax id, product name, version, (number
@@ -76,8 +80,80 @@ SELECT
 FROM Num_coverages
   JOIN Prod_numDoc USING (prod_name, cif, version)
 ;
-  
 
+-- ---
+-- TEST Q1
+-- ---
+
+INSERT INTO Specialties
+  VALUES ('Tonachismo', 'Tiene rima');
+INSERT INTO Specialties
+  VALUES ('Ligma', 'Mucha gente se ha muerto de esto');
+
+INSERT INTO Companies
+  VALUES ('69696969E', 'Seguros Apetecán, S.L.', 'c/khdsdkfhuiewh', 08731, 'Almorra', 789232674, 'seg-apt@apetecan.es', 'apetecan.es');
+INSERT INTO Companies
+  VALUES ('42424242F', 'Seguros Chiquito, S.L.', 'c/sdfass', 08732, 'Almorra', 896242674, 'info@chiquito.es', 'chiquito.es');
+
+INSERT INTO Products
+  VALUES ('69696969E', 'Seguro La caca de la vaca Paca', to_number('4.20', '9.99'), to_date('03/14/1969', 'MM/DD/YYYY'));
+
+INSERT INTO Coverages
+  VALUES ('69696969E', 'Seguro La caca de la vaca Paca', to_number('4.20', '9.99'), 'Tonachismo', 69);
+INSERT INTO Coverages
+  VALUES ('69696969E', 'Seguro La caca de la vaca Paca', to_number('4.20', '9.99'), 'Ligma', 420);
+INSERT INTO Coverages
+  VALUES ('42424242F', 'Seguro Segurísimo bro', to_number('4.20', '9.99'), 'Tonachismo', 420);
+INSERT INTO Coverages
+  VALUES ('42424242F', 'Seguro Segurísimo bro', to_number('4.20', '9.99'), 'Ligma', 69);
+
+INSERT INTO Hospitals
+  VALUES ('Hospital de la Virgen del Santo Abruzo', '006994200', NULL, 'yes', NULL, 83650, 'Almorra');
+INSERT INTO Hospitals
+  VALUES ('Hospital del Apetepore', '005094000', NULL, 'zi', NULL, 8650, 'Almorra');
+
+INSERT INTO Contracts
+  VALUES ('69696969E', 'Hospital de la Virgen del Santo Abruzo', to_date('03/14/1969', 'MM/DD/YYYY'), to_date('03/14/2069', 'MM/DD/YYYY'));
+INSERT INTO Contracts
+  VALUES ('42424242F', 'Hospital del Apetepore', to_date('02/14/1977', 'MM/DD/YYYY'), to_date('03/14/2077', 'MM/DD/YYYY'));
+
+INSERT INTO People
+  VALUES ('10429021C', 'Luisda', 'Casais', 'Mezquida');
+INSERT INTO People
+  VALUES ('10428997A', 'Ignacio', 'Arnaiz', 'Tierraseca');
+
+INSERT INTO Physicians
+  VALUES ('100429021', '10429021C', 87);
+INSERT INTO Physicians
+  VALUES ('100428997', '10428997A', 91);
+
+INSERT INTO Specialists
+  VALUES ('100429021', 'Tonachismo');
+INSERT INTO Specialists
+  VALUES ('100429021', 'Ligma');
+INSERT INTO Specialists
+  VALUES ('100428997', 'Tonachismo');
+
+INSERT INTO Adscriptions
+  VALUES ('100429021', 'Tonachismo', 'Hospital de la Virgen del Santo Abruzo');
+INSERT INTO Adscriptions
+  VALUES ('100429021', 'Tonachismo', 'Hospital del Apetepore');
+INSERT INTO Adscriptions
+  VALUES ('100429021', 'Ligma', 'Hospital del Apetepore');
+
+INSERT INTO Services
+  VALUES ('Tonachismo', 'Hospital de la Virgen del Santo Abruzo');
+INSERT INTO Services
+  VALUES ('Tonachismo', 'Hospital del Apetepore');
+INSERT INTO Services
+  VALUES ('Ligma', 'Hospital del Apetepore');
+
+
+
+
+-- ---
+-- Q2
+-- ---
 
 -- Products (currently in use) offering some coverage that they cannot satisfy (because it
 -- is not included among the services of any of the hospitals with which the company has
