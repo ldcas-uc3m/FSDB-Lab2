@@ -204,6 +204,18 @@ where sq2.cif not in sq1.company
 -- of row (either ‘minimum’ or ‘maximum’ period), period in days, company name,
 -- company tax id, product name, and version. Sort the output alphabetically by specialty.
 
+SELECT specialty, waiting_period
+FROM Coverages
+  INNER JOIN (
+    SELECT max(waiting_period) as max_waiting_period, specialty
+    FROM coverages
+    GROUP BY specialty
+  ) as max_results
+  ON Coverages.specialty = max_results.specialty
+  AND Coverages.waiting_period = max_results.max_waiting_period
+;
+
+
 WITH 
   Spec_max AS (
     SELECT cif, specialty, name as prod_name, version, upper(waiting_period) AS max_waiting_period 
