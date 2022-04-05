@@ -2,12 +2,17 @@
 -- VIEW 1
 -- --
 
-CREATE OR REPLACE VIEW OVERLAPS  AS (
-   SELECT* FROM ( select * from products where (products.launch < sysdate and products.retired is null ))
+--CREATE OR REPLACE VIEW OVERLAPS  AS 
+  -- SELECT* FROM ( select * from products where (products.launch < sysdate and products.retired is null and user = PKG_users.getCurrentUser()))
+   --JOIN COVERAGES 
+   --using(CIF, name, version)
+ --with read only;
+
+CREATE OR REPLACE VIEW OVERLAPS  AS 
+   SELECT* FROM ( select * from products where (products.launch < sysdate and products.retired is null))
    JOIN COVERAGES 
    using(CIF, name, version)
-
-) with read only;
+ with read only;
 
 -- VIEW 1 test
 insert into specialties values ('OVERLAPSTEST ' ,'we are testing OVERLAPS');
