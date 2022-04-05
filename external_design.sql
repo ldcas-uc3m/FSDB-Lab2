@@ -1,4 +1,29 @@
 -- --
+-- VIEW 1
+-- --
+
+CREATE OR REPLACE VIEW OVERLAPS  AS (
+   SELECT* FROM ( select * from products where (products.launch < sysdate and products.retired is null ))
+   JOIN COVERAGES 
+   using(CIF, name, version)
+
+) with read only;
+
+-- VIEW 1 test
+insert into specialties values ('OVERLAPSTEST ' ,'we are testing OVERLAPS');
+
+insert into companies values('44','OVERLAPSTESTCopany', 'address', '111','town', '123','q3@uc3m.es', 'www.uc3m.es');
+insert into products values ('44', 'OVERLAPSTEST', 1, SYSDATE-1,null );
+
+insert into companies values('222','testCompany2', 'address2', '111','q3town', '123','q3@uc3m.es', 'www.uc3m.es');
+insert into products values ('222', 'test2', 1, SYSDATE-1,SYSDATE );
+
+insert into coverages values('1111', 'q3test',1,'q3test', 10);
+insert into coverages values('222', 'q3test2',1,'q3test', 1);
+
+
+
+-- --
 -- VIEW 2
 -- --
 
