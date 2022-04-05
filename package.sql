@@ -88,6 +88,7 @@ SET SERVEROUTPUT ON;
 CREATE OR REPLACE PACKAGE  package1  is
    curr_user varchar2(15):= null;
    PROCEDURE procedure1 (userid VARCHAR2);
+   FUNCTION getcurrentuser RETURN VARCHAR2 ;
    PROCEDURE procedure2 (productname VARCHAR2, companyname VARCHAR2);
    PROCEDURE procedure3 (schedule DATE, doctor VARCHAR2, hospital VARCHAR2);
    END package1;
@@ -106,6 +107,12 @@ CREATE OR REPLACE PACKAGE BODY package1 is
      dbms_output.put_line ('Invalid User');
      end if;
    END;
+   
+   --Function getcurrentuser
+    FUNCTION getcurrentuser RETURN VARCHAR2 IS
+    BEGIN
+    RETURN package1.curr_user;
+    END getcurrentuser;
     
     --Procedure2 body
     PROCEDURE procedure2 (productname varchar2 , companyname varchar2 ) AS
@@ -144,3 +151,12 @@ CREATE OR REPLACE PACKAGE BODY package1 is
     
    END package1;
    /
+
+
+-- Escript to execute the package
+ BEGIN
+    package1.procedure1('99266418-M');
+    package1.procedure2('Seguro Mecanica de claveles', '70355928D');
+   END;
+   /
+   
