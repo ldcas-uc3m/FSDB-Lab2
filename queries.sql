@@ -204,28 +204,16 @@ where sq2.cif not in sq1.company
 -- of row (either ‘minimum’ or ‘maximum’ period), period in days, company name,
 -- company tax id, product name, and version. Sort the output alphabetically by specialty.
 
-SELECT specialty, waiting_period
-FROM Coverages
-  INNER JOIN (
-    SELECT max(waiting_period) as max_waiting_period, specialty
-    FROM coverages
-    GROUP BY specialty
-  ) as max_results
-  ON Coverages.specialty = max_results.specialty
-  AND Coverages.waiting_period = max_results.max_waiting_period
-;
-
-
 WITH 
   Spec_max AS (
-    SELECT cif, specialty, name as prod_name, version, upper(waiting_period) AS max_waiting_period 
+    SELECT cif, specialty, name as prod_name, version, max(to_number(waiting_period)) AS max_waiting_period 
     FROM Coverages
-    ORDER BY waiting_period ASC
+    GROUP BY cif, specialty, name, version
   ),
   Spec_min AS (
-    SELECT cif, specialty, name as prod_name, version, upper(waiting_period) AS min_waiting_period 
+    SELECT cif, specialty, name as prod_name, version, min(to_number(waiting_period)) AS min_waiting_period 
     FROM Coverages
-    ORDER BY waiting_period DESC
+    GROUP BY cif, specialty, name, version
   ),
   QMax AS (
     SELECT cif, to_char('max') as type, specialty, max_waiting_period as days, name as comp_name, prod_name, version
@@ -260,6 +248,8 @@ UNION
 SELECT cif, comp_name, specialty, prod_name, version, type, days FROM QMin
 ORDER BY cif, specialty
 ;
+
+
 
 -- TEST QUERY 3
 
