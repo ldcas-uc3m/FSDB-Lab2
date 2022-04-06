@@ -1,42 +1,34 @@
 SET SERVEROUTPUT ON;
 
-CREATE OR REPLACE PACKAGE PKG_users IS
+CREATE OR REPLACE PACKAGE package1 is
    curr_user varchar2(15):= null;
    PROCEDURE procedure1 (userid VARCHAR2);
    FUNCTION getcurrentuser RETURN VARCHAR2 ;
    PROCEDURE procedure2 (productname VARCHAR2, companyname VARCHAR2);
-   PROCEDURE procedure3 (schedule DATE, doctor VARCHAR2, hospital VARCHAR2);
+   PROCEDURE procedure3 (company VARCHAR2, product VARCHAR2, version NUMBER, start_date DATE, specialty VARCHAR2, schedule DATE, doctor VARCHAR2, hospital VARCHAR2);
    END package1;
 /
-
-CREATE OR REPLACE PACKAGE BODY PKG_users IS
-   -- Procedure that allows assigning a value to the "current user" variable (it must be
-   -- verified that the user, identified by his passport, is registered in the client table;
-   -- the success of the operation must be reported on the display). 
-   PROCEDURE assign_user (userid VARCHAR2) AS
+CREATE OR REPLACE PACKAGE BODY package1 is
+   -- Procedure1 body
+   PROCEDURE procedure1 (userid VARCHAR2) AS
    exist number(2);
    BEGIN
-     select count (*) into exist from clients where passport = procedure1.userid;
-     if exist = 1 then
-     package1.curr_user := procedure1.userid;
-     dbms_output.put_line ('User found');
-     else
-     dbms_output.put_line ('Invalid User');
-     end if;
+        select count (*) into exist from clients where passport = procedure1.userid;
+        if exist = 1 then
+        package1.curr_user := procedure1.userid;
+        dbms_output.put_line ('User found');
+        dbms_output.put_line (package1.getcurrentuser);
+        else
+        dbms_output.put_line ('Invalid User');
+        end if;
    END;
-   
-   --Function getcurrentuser
-    FUNCTION getCurrentUser RETURN VARCHAR2 IS
-    BEGIN
-    RETURN package1.curr_user;
-    END getCurrentUser;
+
+    FUNCTION getcurrentuser RETURN VARCHAR2 IS
+        BEGIN
+        RETURN package1.curr_user;
+        END getcurrentuser;
     
-    --Procedure2 body
-    PROCEDURE add_product (productname varchar2 , companyname varchar2 ) AS
-    -- Procedure to insert a new product for the current customer (active user). The procedure
-    -- will allow specifying both the company and the product name, and will assign the most
-    -- recent version of it. If the product is withdrawn, it should not insert it, and in any case it
-    -- will report the result of the operation on the shell.
+    PROCEDURE procedure2 (productname varchar2, companyname varchar2 ) AS
         exist number(2);
         productversion number(4,2);
         today date;
@@ -52,42 +44,33 @@ CREATE OR REPLACE PACKAGE BODY PKG_users IS
             dbms_output.put_line ('Product correctly assigned');
             else
             dbms_output.put_line ('Invalid data');
-            end if;
+        end if;
         END;
     
-    --Procedure3 body
-    PROCEDURE new_appointment(specialty VARCHAR2, schedule DATE, doctor VARCHAR2, hospital VARCHAR2) AS
-        -- Procedure to insert a new appointment for the current user, with the indicated specialty
-        -- covered by the given policy, on the date provided, and with the specified doctor and
-        -- hospital. Before insertion, the validity of the appointment will be checked (the policy is
-        -- valid on that date and covers that specialty, the hospital and the doctor are accessible
-        -- with that company, and there is no other appointment with that doctor overlapping with
-        -- the new one within ±15 minutes). 
+    PROCEDURE procedure3 (company VARCHAR2, product VARCHAR2, version NUMBER, start_date DATE, specialty VARCHAR2, schedule DATE, doctor VARCHAR2,  hospital VARCHAR2) AS
         checkspecialty number (1);
-        checkdate number(1);
-        checkdochosp number(1);
+        checkdate number(3);
+        checkdochosp number(3);
+        checkcompany number(3);
+        appointmentversion number(4,2);
+        appointmentstart DATE;
+        today DATE;
         BEGIN
-            select count(*) into checkspecialty from coverages
-            where 
-                name = procedure2.productname 
-                AND cif = procedure2.companyname 
-                AND specialty = procedure3.specialty;
-            select start_date into chekdate from policies
-            where
-                product = procedure2.productname 
-                AND company = procedure2.companyname
-            ;
-            select count(*) into checkdochops from adscriptions
-            where hospital = procedure3.hospital and specialty = procedure3.specialty and doctor = procedure3.doctor;
-            if chekspecialty !=0 AND schedule > start_date
-            then
-                select * from policies;
-            end if;
+            select count (*) into checkspecialty from coverages where cif = procedure3.company AND name = procedure3.product AND version = procedure3.version AND specialty = procedure3.specialty;
+            select sysdate into today  from dual;
+            select count(*) into checkdochosp from adscriptions where hospital = procedure3.hospital and specialty = procedure3.specialty and doctor = procedure3.doctor;
+            select count (*) into checkcompany from contracts where hospital = procedure3.hospital and company = procedure3.company;
+            dbms_output.put_line (checkdochosp);
+            If checkspecialty > 0 and checkdochosp > 0 and checkcompany > 0 AND schedule > procedure3.start_date then
+            --insert into  appointments values(procedure3.company, procedure3.product, procedure3.version, package1.curr_user, procedure3.start_date, procedure3.doctor, procedure3.specialty, procedure3.hospital, procedure3.schedule, today, today );
+            dbms_output.put_line ('New appointment correctly inserted');
+            ELSE
+            dbms_output.put_line ('Invalid data, appointment cant be inserted');
+            END IF;
         END;
-    
-    
-   END PKG_users;
-   /
+    END package1;
+    /
+
 
 
 -- script to execute the package
