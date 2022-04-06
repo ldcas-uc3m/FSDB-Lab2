@@ -8,11 +8,13 @@
    --using(CIF, name, version)
  --with read only;
 
-CREATE OR REPLACE VIEW OVERLAPS  AS 
+CREATE OR REPLACE VIEW OVERLAPS AS (
+   -- informs about overlapping coverages (as of today) related to the current user’s policies (that is, whenever s/he has 
+   -- the same coverage in two products contracted by her/him and active today). This view should be “read only”.
    SELECT* FROM ( select * from products where (products.launch < sysdate and products.retired is null))
    JOIN COVERAGES 
    using(CIF, name, version)
- with read only;
+) with read only;
 
 -- VIEW 1 test
 insert into specialties values ('OVERLAPSTEST ' ,'we are testing OVERLAPS');
@@ -87,5 +89,30 @@ CREATE OR REPLACE TRIGGER TG_Delete_My_Coverages
 CREATE OR REPLACE VIEW Reccomendations AS (
     -- list coverages that the current user does not have, and any current product which latest (active) version has that
     -- coverage. This view is also "read-only".
-    
-);
+    WITH 
+    product_specialty AS (
+        -- active products (with their max version), with their specialties
+        SELECT cif, name AS product, MAX(version) AS max_version, specialty FROM (
+            (SELECT cif, name, version, specialty FROM Coverages)
+            JOIN Products USING (cif, name, version)
+        )
+        WHERE retired IS NULL
+        GROUP BY cif, name, specialty
+    ),
+    uncovered_specialties AS (
+        -- specialties that the user doesn't have
+        SELECT name as specialty FROM Specialties
+        WHERE name NOT IN (
+            SELECT specialty FROM (
+                SELECT company AS cif, product AS name, version FROM Policies
+                WHERE 
+                    client=PKG_users.getCurrentUser()
+                    AND (start_date + duration > SYSDATE)
+            ) JOIN Coverages USING (cif, name, version)
+        )
+    )
+    SELECT specialty, cif, product, max_version
+    FROM product_specialty
+    WHERE specialty IN (SELECT specialty FROM uncovered_specialties)
+    ORDER BY specialty
+) WITH READ ONLY;
