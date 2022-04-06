@@ -36,7 +36,7 @@ insert into coverages values('222', 'q3test2',1,'q3test', 1);
 
 CREATE OR REPLACE VIEW My_Coverages AS (
     -- list of products contracted today (company, product, version) with their coverages for the current user.
-    SELECT cif, name as product, version, listagg(specialty, ', ' ON OVERFLOW TRUNCATE) WITHIN GROUP (ORDER BY specialty) coverages
+    SELECT cif as company, name as product, version, listagg(specialty, ', ' ON OVERFLOW TRUNCATE) WITHIN GROUP (ORDER BY specialty) coverages
     FROM (
         SELECT company as cif, product as name, version 
         FROM Policies
@@ -111,8 +111,8 @@ CREATE OR REPLACE VIEW Reccomendations AS (
             ) JOIN Coverages USING (cif, name, version)
         )
     )
-    SELECT specialty, cif, product, max_version
+    SELECT specialty, cif as company, product, max_version
     FROM product_specialty
-    WHERE specialty IN (SELECT specialty FROM uncovered_specialties)
+    WHERE specialty IN (SELECT specialty FROM uncovered_specialties) -- idk why the select is needed tho
     ORDER BY specialty
 ) WITH READ ONLY;
