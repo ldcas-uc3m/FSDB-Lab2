@@ -4,7 +4,7 @@ Bachelor's Degree in Computer Science and Engineering,
 Universidad Carlos III de Madrid
 
 ## Problem description
-On the DB designed for CONGATE, some queries, views, procedures, and triggers must be developed. The lecturers will provide a solution to 1st assignment that will serve as a common starting point for all students (so they have equal opportunities).  
+On the DB designed for CONGATE, some queries, views, procedures, and triggers must be developed. The lecturers will provide a solution to 1st assignment that will serve as a common starting point for all students (`creation.sql`, `import.sql`).  
 The first step will be, therefore, to run the scripts provided by the lecturers (new DB creation script, and script for inserting data into those new tables). Once this is done, a series of elements (composing this assignment) must be developed and documented.  
 The description of these elements is as follows:
 
